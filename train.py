@@ -8,27 +8,19 @@ from os.path import realpath, dirname, join
 from pytorch_lightning import Trainer, seed_everything
 import sys
 
-
-# from model import ConvVAE
-
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 BASE_DIR = join(dirname(realpath(__file__)))
 CONFIG_DIR = join(BASE_DIR, 'config')
 RESULTS_DIR = join(BASE_DIR, 'results')
 
 def main():
     seed_everything(42)
-
-
-
-    parser = argparse.ArgumentParser(description='Convolutional VAE MNIST Example')
-    # parser.add_argument('--result_dir', type=str, default='results', metavar='DIR',
-    #                     help='output directory')
-    parser.add_argument('--batch_size', type=int, default=128, metavar='N',
-                        help='input batch size for training (default: 128)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
+    # parser = argparse.ArgumentParser(description='Convolutional VAE MNIST Example')
+    # # parser.add_argument('--result_dir', type=str, default='results', metavar='DIR',
+    # #                     help='output directory')
+    # parser.add_argument('--batch_size', type=int, default=128, metavar='N',
+    #                     help='input batch size for training (default: 128)')
+    # parser.add_argument('--epochs', type=int, default=10, metavar='N',
+    #                     help='number of epochs to train (default: 10)')
     # parser.add_argument('--seed', type=int, default=1, metavar='S',
     #                     help='random seed (default: 1)')
     # parser.add_argument('--resume', default='', type=str, metavar='PATH',
@@ -38,7 +30,7 @@ def main():
     # parser.add_argument('--latent_size', type=int, default=32, metavar='N',
     #                     help='latent vector size of encoder')
 
-    args = parser.parse_args()
+    args = parse_args()
 
     # torch.manual_seed(args.seed)
 
@@ -67,12 +59,13 @@ def train(model_params, **training_kwargs):
     # hparams = dict(model_config=model_config)
     # hparams.update(training_params)
 
-    model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml')
+    # model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml')
     model = ConvVAE(**model_params)
     training_params = vars(parse_args())
     trainer = Trainer(**training_params)
 
     trainer.fit(model)
+
 
 def parse_args(argv=None):
     argv = argv or []
@@ -80,7 +73,7 @@ def parse_args(argv=None):
     parser = ArgumentParser()
 
     # # add model specific args
-    # parser = SCAEMNIST.add_model_specific_args(parser)
+    parser = ConvVAE.add_model_specific_args(parser)
 
     # add all the available trainer options to parser
     parser = Trainer.add_argparse_args(parser)
