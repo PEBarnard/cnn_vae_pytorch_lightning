@@ -1,2 +1,13 @@
-# cvv_vae_pytorch_lightning
-convolutional variational autoencoder using pytorch lightning
+# Convolutional Variational Autoencoder in PyTorch
+
+## Install
+
+```
+pip install -r requirements.txt
+```
+
+## Run
+
+```
+python train.py
+```
