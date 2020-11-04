@@ -30,7 +30,7 @@ def main():
     # parser.add_argument('--latent_size', type=int, default=32, metavar='N',
     #                     help='latent vector size of encoder')
 
-    args = parse_args()
+    args = parse_args(sys.argv[1:])
 
     # torch.manual_seed(args.seed)
 
@@ -41,8 +41,8 @@ def main():
         #     writer.add_image('sampling', img, epoch)
         #     save_image(sample.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
     # train
-    model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml')
-    train(model_parameters, **vars(args))
+    # model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml')
+    train(**vars(args))
     # model = ConvVAE(**model_parameters)
     # training_params = vars(parse_args())
     # trainer = Trainer(**training_params)
@@ -50,18 +50,18 @@ def main():
     # trainer.fit(model)
 
 
-def train(model_params, **training_kwargs):
-    # model_config = make_config(**model_params)
+def train(**training_kwargs):
+    model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml') # dictionary
 
-    training_params = vars(parse_args())
+    training_params = vars(parse_args())  # dictionary
     training_params.update(training_kwargs)
 
-    # hparams = dict(model_config=model_config)
-    # hparams.update(training_params)
+    hparams = dict(model_parameters=model_parameters)
+    hparams.update(training_params)
 
     # model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml')
-    model = ConvVAE(**model_params)
-    training_params = vars(parse_args())
+    model = ConvVAE(**hparams)
+    # training_params = vars(parse_args())
     trainer = Trainer(**training_params)
 
     trainer.fit(model)

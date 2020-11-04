@@ -30,41 +30,41 @@ class Unflatten(pl.LightningModule):
 
 class ConvVAE(pl.LightningModule):
 
-    def __init__(self, **kwargs):
+    def __init__(self, **hparams):
         super(ConvVAE, self).__init__()
 
-        self.hparams = kwargs["hparams"]
+        self.hparams = hparams
         self.mnist_train = None
         self.mnist_test = None
         self.mnist_val = None
 
-        self.input_image_shape_c = kwargs['input_image_shape']['input_image_shape_c']
-        self.input_image_shape_h = kwargs['input_image_shape']['input_image_shape_h']
-        self.input_image_shape_w = kwargs['input_image_shape']['input_image_shape_w']
+        self.input_image_shape_c = self.hparams['model_parameters']['input_image_shape']['input_image_shape_c']
+        self.input_image_shape_h = self.hparams['model_parameters']['input_image_shape']['input_image_shape_h']
+        self.input_image_shape_w = self.hparams['model_parameters']['input_image_shape']['input_image_shape_w']
 
         # encoder
-        self.latent_dim = kwargs['cnn_vae']['vae_encoder_params']['latent_dim']
-        self.conv1_out_channels = kwargs['cnn_vae']['vae_encoder_params']['conv1_out_channels']
-        self.conv2_out_channels = kwargs['cnn_vae']['vae_encoder_params']['conv2_out_channels']
-        self.linear1_out_layer = kwargs['cnn_vae']['vae_encoder_params']['linear1_out_layer']
-        self.kernel_size = kwargs['cnn_vae']['vae_encoder_params']['kernel_size']
-        self.stride = kwargs['cnn_vae']['vae_encoder_params']['stride']
-        self.padding = kwargs['cnn_vae']['vae_encoder_params']['padding']
+        self.latent_dim = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['latent_dim']
+        self.conv1_out_channels = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['conv1_out_channels']
+        self.conv2_out_channels = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['conv2_out_channels']
+        self.linear1_out_layer = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['linear1_out_layer']
+        self.kernel_size = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['kernel_size']
+        self.stride = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['stride']
+        self.padding = self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['padding']
         self.image_reduced_dim = int(self.input_image_shape_w / (self.kernel_size/self.stride))
-        if kwargs['cnn_vae']['vae_encoder_params']['activation'] == 'relu':
+        if self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['activation'] == 'relu':
             self.encoder_activation = nn.ReLU()
-        elif kwargs['cnn_vae']['vae_encoder_params']['activation'] == 'sigmoid':
+        elif self.hparams['model_parameters']['cnn_vae']['vae_encoder_params']['activation'] == 'sigmoid':
             self.encoder_activation = nn.Sigmoid()
 
         # decoder
-        if kwargs['cnn_vae']['vae_decoder_params']['activation'] == 'relu':
+        if self.hparams['model_parameters']['cnn_vae']['vae_decoder_params']['activation'] == 'relu':
             self.decoder_activation = nn.ReLU()
-        elif kwargs['cnn_vae']['vae_decoder_params']['activation'] == 'sigmoid':
+        elif self.hparams['model_parameters']['cnn_vae']['vae_decoder_params']['activation'] == 'sigmoid':
             self.decoder_activation = nn.Sigmoid()
 
-        if kwargs['cnn_vae']['vae_decoder_params']['last_activation'] == 'relu':
+        if self.hparams['model_parameters']['cnn_vae']['vae_decoder_params']['last_activation'] == 'relu':
             self.decoder_last_activation = nn.ReLU()
-        elif kwargs['cnn_vae']['vae_decoder_params']['last_activation'] == 'sigmoid':
+        elif self.hparams['model_parameters']['cnn_vae']['vae_decoder_params']['last_activation'] == 'sigmoid':
             self.decoder_last_activation = nn.Sigmoid()
 
         self.encoder = nn.Sequential(
