@@ -33,6 +33,7 @@ class ConvVAE(pl.LightningModule):
     def __init__(self, **kwargs):
         super(ConvVAE, self).__init__()
 
+        self.hparams = kwargs["hparams"]
         self.mnist_train = None
         self.mnist_test = None
         self.mnist_val = None
@@ -174,6 +175,14 @@ class ConvVAE(pl.LightningModule):
         loss = self.loss(recon_batch, x, mu, logvar)
         loss /= train_batch[0].shape[0]
         logs = {'train_loss': loss}
+        return {'loss': loss, 'log': logs}
+
+    def test_step(self, test_batch, batch_idx):
+        x, _ = test_batch
+        recon_batch, mu, logvar = self.forward(x)
+        loss = self.loss(recon_batch, x, mu, logvar)
+        loss /= test_batch[0].shape[0]
+        logs = {'test_loss': loss}
         return {'loss': loss, 'log': logs}
 
     def validation_step(self, val_batch, batch_idx):
