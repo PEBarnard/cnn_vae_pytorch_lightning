@@ -129,6 +129,8 @@ class ConvVAE(pl.LightningModule):
         # # parser.add_argument('--look_ahead', action='store_true')
         # # parser.add_argument('--look_ahead_k', type=int, default=5)
         # # parser.add_argument('--look_ahead_alpha', type=float, default=0.5)
+        # parser.add_argument('--auto_select_gpus', type=bool, default=True)
+        # parser.add_argument('--gpus', type=int, default=1)
         parser.add_argument('--use_lr_scheduler', type=bool, default=True)
         parser.add_argument('--lr_scheduler_decay_rate', type=float, default=0.96)
 
@@ -245,7 +247,7 @@ class ConvVAE(pl.LightningModule):
         # self.logger..add_image('recons', rg, self.current_epoch)
 
         return {'avg_test_loss': avg_loss, 'log': tensorboard_logs}
-        
+
     def prepare_data(self):
         # transforms for images
         transform = transforms.Compose([transforms.ToTensor()]) #,
