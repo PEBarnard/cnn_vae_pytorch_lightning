@@ -225,6 +225,27 @@ class ConvVAE(pl.LightningModule):
 
         return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
 
+    def test_epoch_end(self, outputs):
+        # called at the end of the validation epoch
+        # outputs is an array with what you returned in validation_step for each batch
+        # outputs = [{'loss': batch_0_loss}, {'loss': batch_1_loss}, ..., {'loss': batch_n_loss}]
+        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
+        tensorboard_logs = {'test_loss': avg_loss}
+
+        res = outputs[0]['reconstruction']
+        # log image reconstructions
+        n = min(64, 8)
+        recons = [res.cpu()[:n], res.cpu()[:n]]
+        recons.append(res.cpu()[:n])
+        recon = torch.cat(recons, 0)
+        rg = torchvision.utils.make_grid(
+            recon,
+            nrow=n, pad_value=0, padding=1
+        )
+        # self.logger..add_image('recons', rg, self.current_epoch)
+
+        return {'avg_test_loss': avg_loss, 'log': tensorboard_logs}
+        
     def prepare_data(self):
         # transforms for images
         transform = transforms.Compose([transforms.ToTensor()]) #,
