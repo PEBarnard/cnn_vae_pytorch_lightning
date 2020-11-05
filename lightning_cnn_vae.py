@@ -120,7 +120,7 @@ class ConvVAE(pl.LightningModule):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         # data args
         # parser.add_argument('--data_dir', type=str, default=str(pathlib.Path('./data')))
-        parser.add_argument('--num_workers', type=int, default=(os.cpu_count()/2))
+        parser.add_argument('--num_workers', type=int, default=(int(os.cpu_count()/2)))
         parser.add_argument('--batch_size', type=int, default=128)
         # # optimizer args
         # # parser.add_argument('--optimizer_type', type=str, default='Adam')
@@ -197,7 +197,7 @@ class ConvVAE(pl.LightningModule):
             # n = min(x.size(0), 8)
             # comparison = torch.cat([x[:n], recon_batch.view(64, 1, 28, 28)[:n]]).cpu()
             # img = make_grid(comparison)
-            out['reconstruction'] = recon_batch.view(64,
+            out['reconstruction'] = recon_batch.view(self.hparams["batch_size"],
                                                      self.input_image_shape_c,
                                                      self.input_image_shape_h,
                                                      self.input_image_shape_w)
@@ -237,14 +237,14 @@ class ConvVAE(pl.LightningModule):
         self.mnist_train, self.mnist_val = random_split(mnist_train, [55000, 5000])
 
     def train_dataloader(self):
-        return DataLoader(self.mnist_train, batch_size=64)
+        return DataLoader(self.mnist_train, batch_size=self.hparams["batch_size"], num_workers=self.hparams["num_workers"])
 
     def val_dataloader(self):
-        return DataLoader(self.mnist_val, batch_size=64)
+        return DataLoader(self.mnist_val, batch_size=self.hparams["batch_size"], num_workers=self.hparams["num_workers"])
 
     def test_dataloader(self):
-        return DataLoader(self.mnist_test, batch_size=64)
+        return DataLoader(self.mnist_test, batch_size=self.hparams["batch_size"], num_workers=self.hparams["num_workers"])
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams["learning_rate"])
         return optimizer
