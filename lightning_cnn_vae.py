@@ -120,17 +120,17 @@ class ConvVAE(pl.LightningModule):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
         # data args
         # parser.add_argument('--data_dir', type=str, default=str(pathlib.Path('./data')))
-        # parser.add_argument('--num_workers', type=int, default=os.cpu_count())
-        # parser.add_argument('--batch_size', type=int, default=128)
+        parser.add_argument('--num_workers', type=int, default=(os.cpu_count()/2))
+        parser.add_argument('--batch_size', type=int, default=128)
         # # optimizer args
         # # parser.add_argument('--optimizer_type', type=str, default='Adam')
-        # # parser.add_argument('--learning_rate', type=float, default=3e-5)
+        parser.add_argument('--learning_rate', type=float, default=3e-5)
         # parser.add_argument('--weight_decay', type=float, default=0.0)
         # # parser.add_argument('--look_ahead', action='store_true')
         # # parser.add_argument('--look_ahead_k', type=int, default=5)
         # # parser.add_argument('--look_ahead_alpha', type=float, default=0.5)
-        # parser.add_argument('--use_lr_scheduler', type=bool, default=True)
-        # parser.add_argument('--lr_scheduler_decay_rate', type=float, default=0.96)
+        parser.add_argument('--use_lr_scheduler', type=bool, default=True)
+        parser.add_argument('--lr_scheduler_decay_rate', type=float, default=0.96)
 
         return parser
 
