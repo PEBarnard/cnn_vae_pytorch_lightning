@@ -86,10 +86,8 @@ class ConvVAE(pl.LightningModule):
             self.encoder_activation
         )
 
-        # hidden => mu
         self.fc1 = nn.Linear(self.linear1_out_layer, self.latent_dim)
 
-        # hidden => logvar
         self.fc2 = nn.Linear(self.linear1_out_layer, self.latent_dim)
 
         self.decoder = nn.Sequential(
@@ -118,19 +116,9 @@ class ConvVAE(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
-        # data args
-        # parser.add_argument('--data_dir', type=str, default=str(pathlib.Path('./data')))
         parser.add_argument('--num_workers', type=int, default=(int(os.cpu_count()/2)))
         parser.add_argument('--batch_size', type=int, default=128)
-        # # optimizer args
-        # # parser.add_argument('--optimizer_type', type=str, default='Adam')
         parser.add_argument('--learning_rate', type=float, default=3e-5)
-        # parser.add_argument('--weight_decay', type=float, default=0.0)
-        # # parser.add_argument('--look_ahead', action='store_true')
-        # # parser.add_argument('--look_ahead_k', type=int, default=5)
-        # # parser.add_argument('--look_ahead_alpha', type=float, default=0.5)
-        # parser.add_argument('--auto_select_gpus', type=bool, default=True)
-        # parser.add_argument('--gpus', type=int, default=1)
         parser.add_argument('--use_lr_scheduler', type=bool, default=True)
         parser.add_argument('--lr_scheduler_decay_rate', type=float, default=0.96)
 
@@ -159,11 +147,8 @@ class ConvVAE(pl.LightningModule):
         return self.decode(z), mu, logvar
 
     def loss(self, recon_x, x, mu, logvar):
-        # reconstruction loss
         BCE = F.binary_cross_entropy(recon_x.view(-1, self.input_image_shape_h*self.input_image_shape_w),
                                      x.view(-1, self.input_image_shape_h*self.input_image_shape_w), reduction='sum')
-
-        # KL divergence loss
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
         return BCE + KLD
@@ -196,9 +181,6 @@ class ConvVAE(pl.LightningModule):
         out = {'val_loss': loss}
 
         if batch_idx == 0:
-            # n = min(x.size(0), 8)
-            # comparison = torch.cat([x[:n], recon_batch.view(64, 1, 28, 28)[:n]]).cpu()
-            # img = make_grid(comparison)
             out['reconstruction'] = recon_batch.view(self.hparams["batch_size"],
                                                      self.input_image_shape_c,
                                                      self.input_image_shape_h,
@@ -207,14 +189,10 @@ class ConvVAE(pl.LightningModule):
         return out
 
     def validation_epoch_end(self, outputs):
-        # called at the end of the validation epoch
-        # outputs is an array with what you returned in validation_step for each batch
-        # outputs = [{'loss': batch_0_loss}, {'loss': batch_1_loss}, ..., {'loss': batch_n_loss}]
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
 
         res = outputs[0]['reconstruction']
-        # log image reconstructions
         n = min(64, 8)
         recons = [res.cpu()[:n], res.cpu()[:n]]
         recons.append(res.cpu()[:n])
@@ -223,19 +201,13 @@ class ConvVAE(pl.LightningModule):
             recon,
             nrow=n, pad_value=0, padding=1
         )
-        # self.logger..add_image('recons', rg, self.current_epoch)
-
         return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
 
     def test_epoch_end(self, outputs):
-        # called at the end of the validation epoch
-        # outputs is an array with what you returned in validation_step for each batch
-        # outputs = [{'loss': batch_0_loss}, {'loss': batch_1_loss}, ..., {'loss': batch_n_loss}]
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
         tensorboard_logs = {'test_loss': avg_loss}
 
         res = outputs[0]['reconstruction']
-        # log image reconstructions
         n = min(64, 8)
         recons = [res.cpu()[:n], res.cpu()[:n]]
         recons.append(res.cpu()[:n])
@@ -244,16 +216,11 @@ class ConvVAE(pl.LightningModule):
             recon,
             nrow=n, pad_value=0, padding=1
         )
-        # self.logger..add_image('recons', rg, self.current_epoch)
 
         return {'avg_test_loss': avg_loss, 'log': tensorboard_logs}
 
     def prepare_data(self):
-        # transforms for images
-        transform = transforms.Compose([transforms.ToTensor()]) #,
-                                        # transforms.Normalize((0.1307,), (0.3081,))])
-
-        # prepare transforms standard to MNIST
+        transform = transforms.Compose([transforms.ToTensor()]) 
         mnist_train = MNIST(os.getcwd(), train=True, download=True, transform=transform)
         self.mnist_test = MNIST(os.getcwd(), train=False, download=True, transform=transform)
 
