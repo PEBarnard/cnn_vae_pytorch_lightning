@@ -119,8 +119,6 @@ class ConvVAE(pl.LightningModule):
         parser.add_argument('--num_workers', type=int, default=(int(os.cpu_count()/2)))
         parser.add_argument('--batch_size', type=int, default=128)
         parser.add_argument('--learning_rate', type=float, default=3e-5)
-        parser.add_argument('--use_lr_scheduler', type=bool, default=True)
-        parser.add_argument('--lr_scheduler_decay_rate', type=float, default=0.96)
 
         return parser
 
@@ -161,21 +159,31 @@ class ConvVAE(pl.LightningModule):
         recon_batch, mu, logvar = self.forward(x)
         loss = self.loss(recon_batch, x, mu, logvar)
         loss /= train_batch[0].shape[0]
-        logs = {'train_loss': loss}
-        return {'loss': loss, 'log': logs}
+        out = {'loss': loss}
+        return out
+        # logs = {'train_loss': loss}
+        # return {'loss': loss, 'log': logs}
 
     def test_step(self, test_batch, batch_idx):
         x, _ = test_batch
         recon_batch, mu, logvar = self.forward(x)
         loss = self.loss(recon_batch, x, mu, logvar)
         loss /= test_batch[0].shape[0]
-        logs = {'test_loss': loss}
-        return {'loss': loss, 'log': logs}
+        # logs = {'test_loss': loss}
+        # return {'loss': loss, 'log': logs}
+        out = {'test_loss': loss}
+        if batch_idx == 0:
+            out['reconstruction'] = recon_batch.view(self.hparams["batch_size"],
+                                                     self.input_image_shape_c,
+                                                     self.input_image_shape_h,
+                                                     self.input_image_shape_w)
+        return out
 
     def validation_step(self, val_batch, batch_idx):
         x, _ = val_batch
         recon_batch, mu, logvar = self.forward(x)
         loss = self.loss(recon_batch, x, mu, logvar)
+        dummy_a = val_batch[0].shape[0]
         loss /= val_batch[0].shape[0]
 
         out = {'val_loss': loss}
@@ -188,9 +196,15 @@ class ConvVAE(pl.LightningModule):
 
         return out
 
+    def training_epoch_end(self, outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+
+        self.log('train_loss', avg_loss, on_epoch=True,)
+        self.log('step', self.current_epoch)
+        return None
+
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-        tensorboard_logs = {'val_loss': avg_loss}
 
         res = outputs[0]['reconstruction']
         n = min(64, 8)
@@ -201,11 +215,14 @@ class ConvVAE(pl.LightningModule):
             recon,
             nrow=n, pad_value=0, padding=1
         )
-        return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
+        self.log('val_loss', avg_loss, on_epoch=True,)
+        self.log('step', self.current_epoch)
+        self.logger.experiment.add_image('val_reconstruction', rg, 0)
+
+        return None
 
     def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
-        tensorboard_logs = {'test_loss': avg_loss}
 
         res = outputs[0]['reconstruction']
         n = min(64, 8)
@@ -217,7 +234,11 @@ class ConvVAE(pl.LightningModule):
             nrow=n, pad_value=0, padding=1
         )
 
-        return {'avg_test_loss': avg_loss, 'log': tensorboard_logs}
+        self.log('test_loss', avg_loss, on_epoch=True,)
+        self.log('step', self.current_epoch)
+        self.logger.experiment.add_image('test_reconstruction', rg, 0)
+
+        return None
 
     def prepare_data(self):
         transform = transforms.Compose([transforms.ToTensor()]) 
