@@ -19,22 +19,17 @@ def main():
 
 def train(**training_kwargs):
     model_parameters = model_config(CONFIG_DIR, 'model_param_config.yml')
-
     training_params = vars(parse_args())
     training_params.update(training_kwargs)
-
     hparams = dict(model_parameters=model_parameters)
     hparams.update(training_params)
-
     model = ConvVAE(**hparams)
-    trainer = Trainer(**training_params)
-
+    trainer = Trainer(**training_params, gpus=1)
     trainer.fit(model)
 
 
 def parse_args(argv=None):
     argv = argv or []
-
     parser = ArgumentParser()
     parser = ConvVAE.add_model_specific_args(parser)
     parser = Trainer.add_argparse_args(parser)
